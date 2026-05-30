@@ -11,7 +11,7 @@ export default async function DashboardPage() {
 
   const [{ data: projects }, { data: tasks }, { data: events }] = await Promise.all([
     supabase.from('projects').select('*').eq('status', 'active').order('created_at'),
-    supabase.from('tasks').select('*, projects(name)').eq('assignee_id', user!.id).eq('status', 'not_done').order('created_at'),
+    supabase.from('tasks').select('*, projects(name)').eq('assignee_id', user!.id).eq('status', 'not_done').eq('due_date', new Date().toISOString().split('T')[0]).order('created_at'),
     supabase.from('events').select('*, projects(color, name)').order('event_date'),
   ])
 
@@ -58,9 +58,9 @@ export default async function DashboardPage() {
       </div>
 
       <div>
-        <h2 className="font-semibold mb-3">My Tasks</h2>
+        <h2 className="font-semibold mb-3">Today's Tasks</h2>
         {!sortedTasks.length ? (
-          <p className="text-gray-500 text-sm">No tasks assigned to you.</p>
+          <p className="text-gray-500 text-sm">No tasks due today.</p>
         ) : (
           <div className="space-y-2">
             {sortedTasks.map(t => (
