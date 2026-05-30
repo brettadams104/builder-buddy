@@ -11,7 +11,7 @@ export default async function FolderPage({
   const { id, folderId } = await params
   const supabase = await createClient()
 
-  const { data: folder } = await supabase.from('folders').select('*').eq('id', folderId).single()
+  const { data: folder } = await supabase.from('folders').select('*').eq('id', folderId).eq('project_id', id).single()
   if (!folder) notFound()
 
   const { data: files } = await supabase

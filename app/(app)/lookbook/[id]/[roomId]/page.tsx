@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { uploadLookbookPhoto } from '@/lib/actions/lookbook'
+import { uploadLookbookPhoto, deleteLookbookPhoto } from '@/lib/actions/lookbook'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
@@ -43,7 +43,15 @@ export default async function RoomPhotosPage({
 
       <div className="grid grid-cols-2 gap-2">
         {photos?.map(photo => (
-          <img key={photo.id} src={photo.url} alt={room.room_type} className="w-full h-40 object-cover rounded-xl" />
+          <div key={photo.id} className="relative rounded-xl overflow-hidden">
+            <img src={photo.url} alt={room.room_type} className="w-full h-40 object-cover" />
+            <form
+              action={async () => { 'use server'; await deleteLookbookPhoto(photo.id, id, roomId) }}
+              className="absolute top-1 right-1"
+            >
+              <button type="submit" className="bg-black/50 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center hover:bg-black/70">✕</button>
+            </form>
+          </div>
         ))}
       </div>
     </div>

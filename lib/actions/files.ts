@@ -25,7 +25,8 @@ export async function uploadFile(folderId: string, projectId: string, formData: 
 
   const { data: { publicUrl } } = supabase.storage.from('project-files').getPublicUrl(path)
 
-  const isImage = file.type.startsWith('image/')
+  const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif']
+  const isImage = imageExts.includes((ext ?? '').toLowerCase())
   const { error } = await supabase.from('files').insert({
     folder_id: folderId,
     name: file.name,
@@ -38,7 +39,20 @@ export async function uploadFile(folderId: string, projectId: string, formData: 
 
 export async function deleteFile(fileId: string, folderId: string, projectId: string) {
   const supabase = await createClient()
+
+  // Get the file URL to derive storage path before deleting
+  const { data: file } = await supabase.from('files').select('url').eq('id', fileId).single()
+
   const { error } = await supabase.from('files').delete().eq('id', fileId)
   if (error) throw new Error(error.message)
+
+  // Delete from storage (best effort — don't fail the whole operation if this fails)
+  if (file?.url) {
+    const urlParts = file.url.split('/project-files/')
+    if (urlParts.length > 1) {
+      await supabase.storage.from('project-files').remove([urlParts[1]]).catch(() => {})
+    }
+  }
+
   revalidatePath(`/projects/${projectId}/files/${folderId}`)
 }

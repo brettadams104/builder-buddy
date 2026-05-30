@@ -17,7 +17,7 @@ export default async function LookbookPage({
 
   const roomTypes = Array.from(new Set((allRooms ?? []).map(r => r.room_type))).sort()
 
-  let filteredPhotos: { url: string }[] | null = null
+  let filteredPhotos: { url: string }[] = []
   if (room) {
     const { data: roomRows } = await supabase
       .from('lookbook_rooms')
@@ -29,7 +29,7 @@ export default async function LookbookPage({
         .from('lookbook_photos')
         .select('url')
         .in('room_id', roomIds)
-      filteredPhotos = data
+      filteredPhotos = data ?? []
     }
   }
 
@@ -58,15 +58,18 @@ export default async function LookbookPage({
         </div>
       )}
 
-      {room && filteredPhotos && (
+      {room && (
         <div>
           <h2 className="font-semibold mb-3">{room} Photos</h2>
-          {!filteredPhotos.length && <p className="text-gray-500 text-sm">No photos yet for this room type.</p>}
-          <div className="grid grid-cols-2 gap-2">
-            {filteredPhotos.map((p, i) => (
-              <img key={i} src={p.url} alt={room} className="w-full h-40 object-cover rounded-xl" />
-            ))}
-          </div>
+          {!filteredPhotos?.length ? (
+            <p className="text-gray-500 text-sm text-center py-8">No {room} photos yet.</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              {filteredPhotos.map((p, i) => (
+                <img key={i} src={p.url} alt={room} className="w-full h-40 object-cover rounded-xl" />
+              ))}
+            </div>
+          )}
         </div>
       )}
 

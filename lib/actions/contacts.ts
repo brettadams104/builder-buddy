@@ -19,7 +19,7 @@ export async function createContact(input: {
 export async function attachContact(projectId: string, contactId: string) {
   const supabase = await createClient()
   const { error } = await supabase.from('project_contacts').insert({ project_id: projectId, contact_id: contactId })
-  if (error && !error.message.includes('duplicate')) throw new Error(error.message)
+  if (error && error.code !== '23505') throw new Error(error.message)
   revalidatePath(`/projects/${projectId}/contacts`)
 }
 

@@ -48,3 +48,21 @@ export async function uploadLookbookPhoto(roomId: string, homeId: string, file: 
   if (error) throw new Error(error.message)
   revalidatePath(`/lookbook/${homeId}/${roomId}`)
 }
+
+export async function deleteLookbookPhoto(photoId: string, homeId: string, roomId: string) {
+  const supabase = await createClient()
+
+  const { data: photo } = await supabase.from('lookbook_photos').select('url').eq('id', photoId).single()
+
+  const { error } = await supabase.from('lookbook_photos').delete().eq('id', photoId)
+  if (error) throw new Error(error.message)
+
+  if (photo?.url) {
+    const urlParts = photo.url.split('/lookbook-photos/')
+    if (urlParts.length > 1) {
+      await supabase.storage.from('lookbook-photos').remove([urlParts[1]]).catch(() => {})
+    }
+  }
+
+  revalidatePath(`/lookbook/${homeId}/${roomId}`)
+}
