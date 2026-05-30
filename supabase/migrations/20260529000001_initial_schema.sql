@@ -33,6 +33,16 @@ create table public.tasks (
   created_at timestamptz not null default now()
 );
 
+create table public.contacts (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,
+  company text,
+  trade text not null,
+  phone text not null,
+  notes text,
+  created_at timestamptz not null default now()
+);
+
 create table public.events (
   id uuid default gen_random_uuid() primary key,
   project_id uuid references public.projects(id) on delete cascade not null,
@@ -56,16 +66,6 @@ create table public.files (
   name text not null,
   url text not null,
   file_type text not null check (file_type in ('image', 'document')),
-  created_at timestamptz not null default now()
-);
-
-create table public.contacts (
-  id uuid default gen_random_uuid() primary key,
-  name text not null,
-  company text,
-  trade text not null,
-  phone text not null,
-  notes text,
   created_at timestamptz not null default now()
 );
 

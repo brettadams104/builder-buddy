@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createTask } from '@/lib/actions/tasks'
 import { TaskStatusButton } from './task-status-button'
+import { TaskNotes } from './task-notes'
 import { PriorityBadge } from '@/components/priority-badge'
 import type { Priority, TaskStatus } from '@/lib/types'
 
@@ -24,8 +25,9 @@ export default async function TasksPage({ params }: { params: Promise<{ id: stri
     const assigneeId = formData.get('assignee_id') as string
     const priority = formData.get('priority') as Priority
     const dueDate = (formData.get('due_date') as string) || null
+    const notes = (formData.get('notes') as string) || null
     if (!title?.trim() || !assigneeId || !priority) return
-    await createTask({ projectId: id, title: title.trim(), assigneeId, priority, dueDate })
+    await createTask({ projectId: id, title: title.trim(), assigneeId, priority, dueDate, notes })
   }
 
   return (
@@ -46,6 +48,12 @@ export default async function TasksPage({ params }: { params: Promise<{ id: stri
           </select>
         </div>
         <input name="due_date" type="date" className="w-full border rounded-lg px-3 py-2 text-sm" />
+        <textarea
+          name="notes"
+          rows={2}
+          placeholder="Add notes... (optional)"
+          className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+        />
         <button type="submit" className="w-full bg-[#1e3a5f] text-white rounded-lg py-2 text-sm font-medium hover:bg-[#162d4a]">
           Add Task
         </button>
@@ -60,7 +68,8 @@ export default async function TasksPage({ params }: { params: Promise<{ id: stri
               <div className="space-y-1 min-w-0">
                 <p className="text-sm font-medium">{task.title}</p>
                 <p className="text-xs text-gray-500">→ {(task.profiles as { name: string } | null)?.name ?? 'Unassigned'}</p>
-                {task.due_date && <p className="text-xs text-gray-400">{new Date(task.due_date).toLocaleDateString()}</p>}
+                {task.due_date && <p className="text-xs text-gray-400">{new Date(task.due_date + 'T00:00:00').toLocaleDateString()}</p>}
+                {task.notes && <TaskNotes notes={task.notes} />}
               </div>
               <div className="flex flex-col items-end gap-2 shrink-0">
                 <PriorityBadge priority={task.priority as Priority} />

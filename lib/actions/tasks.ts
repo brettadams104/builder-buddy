@@ -11,6 +11,7 @@ export async function createTask(input: {
   assigneeId: string
   priority: Priority
   dueDate: string | null
+  notes: string | null
 }) {
   const supabase = await createClient()
   const { error } = await supabase.from('tasks').insert({
@@ -19,6 +20,7 @@ export async function createTask(input: {
     assignee_id: input.assigneeId,
     priority: input.priority,
     due_date: input.dueDate,
+    notes: input.notes,
   })
   if (error) throw new Error(error.message)
 
