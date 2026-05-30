@@ -17,7 +17,7 @@ create table public.projects (
 create table public.notes (
   id uuid default gen_random_uuid() primary key,
   project_id uuid references public.projects(id) on delete cascade not null,
-  author_id uuid references public.profiles(id) on delete cascade not null,
+  author_id uuid references public.profiles(id) on delete set null,
   content text not null,
   created_at timestamptz not null default now()
 );
@@ -26,7 +26,7 @@ create table public.tasks (
   id uuid default gen_random_uuid() primary key,
   project_id uuid references public.projects(id) on delete cascade not null,
   title text not null,
-  assignee_id uuid references public.profiles(id) on delete cascade not null,
+  assignee_id uuid references public.profiles(id) on delete set null,
   priority text not null check (priority in ('urgent', 'moderate', 'low')),
   status text not null default 'not_done' check (status in ('not_done', 'done', 'rescheduled')),
   due_date date,
@@ -39,7 +39,7 @@ create table public.events (
   title text not null,
   event_date date not null,
   event_time time,
-  contact_id uuid,
+  contact_id uuid references public.contacts(id) on delete set null,
   created_at timestamptz not null default now()
 );
 
@@ -118,3 +118,4 @@ create index on public.tasks (assignee_id);
 create index on public.events (project_id);
 create index on public.events (event_date);
 create index on public.folders (project_id);
+create index on public.files (folder_id);

@@ -12,7 +12,8 @@ alter table public.lookbook_rooms enable row level security;
 alter table public.lookbook_photos enable row level security;
 
 -- All authenticated users can read and write everything (internal tool, no roles)
-create policy "authenticated_all" on public.profiles for all to authenticated using (true) with check (true);
+create policy "profiles_read_all" on public.profiles for select to authenticated using (true);
+create policy "profiles_write_own" on public.profiles for all to authenticated using (auth.uid() = id) with check (auth.uid() = id);
 create policy "authenticated_all" on public.projects for all to authenticated using (true) with check (true);
 create policy "authenticated_all" on public.notes for all to authenticated using (true) with check (true);
 create policy "authenticated_all" on public.tasks for all to authenticated using (true) with check (true);

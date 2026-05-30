@@ -26,7 +26,7 @@ export interface Project {
 export interface Note {
   id: string
   project_id: string
-  author_id: string
+  author_id: string | null
   content: string
   created_at: string
 }
@@ -35,7 +35,7 @@ export interface Task {
   id: string
   project_id: string
   title: string
-  assignee_id: string
+  assignee_id: string | null
   priority: Priority
   status: TaskStatus
   due_date: string | null
