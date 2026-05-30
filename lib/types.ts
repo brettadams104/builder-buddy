@@ -33,7 +33,7 @@ export interface Note {
 
 export interface Task {
   id: string
-  project_id: string
+  project_id: string | null
   title: string
   assignee_id: string | null
   priority: Priority

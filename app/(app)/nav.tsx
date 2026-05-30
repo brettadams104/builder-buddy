@@ -33,6 +33,7 @@ export function Nav({ signOut }: Props) {
       {open && (
         <div className="absolute right-0 top-full mt-2 w-48 bg-white border rounded-xl shadow-lg overflow-hidden z-20">
           <Link href="/dashboard" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm hover:bg-gray-50 border-b">Dashboard</Link>
+          <Link href="/dashboard/tasks" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm hover:bg-gray-50 border-b">Task Manager</Link>
           <Link href="/contacts" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm hover:bg-gray-50 border-b">Contacts</Link>
           <Link href="/lookbook" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm hover:bg-gray-50 border-b">Lookbook</Link>
           <Link href="/dashboard/team" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm hover:bg-gray-50 border-b">Team</Link>

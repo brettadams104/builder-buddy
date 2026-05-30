@@ -6,7 +6,7 @@ import { sendUrgentTaskSMS } from '@/lib/notifications/sms'
 import type { Priority, TaskStatus } from '@/lib/types'
 
 export async function createTask(input: {
-  projectId: string
+  projectId: string | null
   title: string
   assigneeId: string
   priority: Priority
@@ -15,7 +15,7 @@ export async function createTask(input: {
 }) {
   const supabase = await createClient()
   const { error } = await supabase.from('tasks').insert({
-    project_id: input.projectId,
+    project_id: input.projectId || null,
     title: input.title,
     assignee_id: input.assigneeId,
     priority: input.priority,
