@@ -1,9 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { createTask } from '@/lib/actions/tasks'
-import { TaskStatusButton } from '@/app/(app)/projects/[id]/tasks/task-status-button'
-import { TaskNotes } from '@/app/(app)/projects/[id]/tasks/task-notes'
 import { PriorityBadge } from '@/components/priority-badge'
-import type { Priority, TaskStatus } from '@/lib/types'
+import Link from 'next/link'
+import type { Priority } from '@/lib/types'
 
 export default async function TaskManagerPage() {
   const supabase = await createClient()
@@ -78,7 +77,7 @@ export default async function TaskManagerPage() {
 
       <div className="space-y-2">
         {tasks?.map(task => (
-          <div key={task.id} className="bg-white border rounded-xl p-4 shadow-sm">
+          <Link key={task.id} href={`/dashboard/tasks/${task.id}`} className="block bg-white border rounded-xl p-4 shadow-sm hover:border-blue-400 transition-colors">
             <div className="flex items-start justify-between gap-2">
               <div className="space-y-1 min-w-0">
                 <p className="text-sm font-medium">{task.title}</p>
@@ -89,14 +88,10 @@ export default async function TaskManagerPage() {
                 {task.due_date && (
                   <p className="text-xs text-gray-400">{new Date(task.due_date + 'T00:00:00').toLocaleDateString()}</p>
                 )}
-                {task.notes && <TaskNotes notes={task.notes} />}
               </div>
-              <div className="flex flex-col items-end gap-2 shrink-0">
-                <PriorityBadge priority={task.priority as Priority} />
-                <TaskStatusButton taskId={task.id} status={task.status as TaskStatus} projectId={task.project_id ?? ''} />
-              </div>
+              <PriorityBadge priority={task.priority as Priority} />
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
