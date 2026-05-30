@@ -9,9 +9,12 @@ export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: projects }, { data: tasks }, { data: events }] = await Promise.all([
+  const today = new Date().toISOString().split('T')[0]
+
+  const [{ data: projects }, { data: tasks }, { data: upcomingTasks }, { data: events }] = await Promise.all([
     supabase.from('projects').select('*').eq('status', 'active').order('created_at'),
-    supabase.from('tasks').select('*, projects(name)').eq('assignee_id', user!.id).eq('status', 'not_done').eq('due_date', new Date().toISOString().split('T')[0]).order('created_at'),
+    supabase.from('tasks').select('*, projects(name)').eq('assignee_id', user!.id).eq('status', 'not_done').eq('due_date', today).order('created_at'),
+    supabase.from('tasks').select('*, projects(name)').eq('assignee_id', user!.id).eq('status', 'not_done').gt('due_date', today).order('due_date', { ascending: true }).limit(5),
     supabase.from('events').select('*, projects(color, name)').order('event_date'),
   ])
 
@@ -69,6 +72,17 @@ export default async function DashboardPage() {
           </div>
         )}
       </div>
+
+      {!!upcomingTasks?.length && (
+        <div>
+          <h2 className="font-semibold mb-3">Upcoming Tasks</h2>
+          <div className="space-y-2">
+            {upcomingTasks.map(t => (
+              <TaskItem key={t.id} task={t as Task} projectName={(t.projects as { name: string })?.name ?? ''} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
