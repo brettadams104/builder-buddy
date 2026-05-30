@@ -35,6 +35,7 @@ export function Nav({ signOut }: Props) {
           <Link href="/dashboard" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm hover:bg-gray-50 border-b">Dashboard</Link>
           <Link href="/contacts" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm hover:bg-gray-50 border-b">Contacts</Link>
           <Link href="/lookbook" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm hover:bg-gray-50 border-b">Lookbook</Link>
+          <Link href="/dashboard/team" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm hover:bg-gray-50 border-b">Team</Link>
           <form action={signOut}>
             <button type="submit" className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-gray-50">Sign Out</button>
           </form>
