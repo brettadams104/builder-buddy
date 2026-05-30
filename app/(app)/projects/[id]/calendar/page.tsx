@@ -43,7 +43,7 @@ export default async function CalendarPage({ params }: { params: Promise<{ id: s
             <div>
               <p className="text-sm font-medium">{event.title}</p>
               <p className="text-xs text-gray-500">
-                {new Date(event.event_date).toLocaleDateString()}
+                {new Date(event.event_date + 'T00:00:00').toLocaleDateString()}
                 {event.event_time && ` at ${event.event_time.slice(0, 5)}`}
               </p>
             </div>

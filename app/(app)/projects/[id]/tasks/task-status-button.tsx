@@ -23,9 +23,12 @@ export function TaskStatusButton({ taskId, status, projectId }: { taskId: string
   async function cycle() {
     const next = STATUSES[(STATUSES.indexOf(current) + 1) % STATUSES.length]
     setLoading(true)
-    await updateTaskStatus(taskId, next, projectId)
-    setCurrent(next)
-    setLoading(false)
+    try {
+      await updateTaskStatus(taskId, next, projectId)
+      setCurrent(next)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
