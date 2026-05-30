@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { deleteTask, pushTaskToTomorrow } from '@/lib/actions/tasks'
+import { deleteTask, completeTask, pushTaskToTomorrow, reopenTask } from '@/lib/actions/tasks'
 import { PriorityBadge } from '@/components/priority-badge'
 import type { Priority } from '@/lib/types'
 
@@ -19,10 +19,16 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ tas
 
   const project = task.projects as { id: string; name: string } | null
   const assignee = task.profiles as { name: string } | null
+  const isDone = task.status === 'done'
 
-  async function handleDone() {
+  async function handleComplete() {
     'use server'
-    await deleteTask(taskId, project?.id ?? null)
+    await completeTask(taskId, project?.id ?? null)
+  }
+
+  async function handleReopen() {
+    'use server'
+    await reopenTask(taskId, project?.id ?? null)
   }
 
   async function handleDelete() {
@@ -37,13 +43,19 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ tas
 
   return (
     <div className="space-y-5">
-      <Link href="/dashboard/tasks" className="text-blue-600 hover:underline text-sm">← Task Manager</Link>
+      <Link href={isDone ? '/dashboard/tasks?tab=completed' : '/dashboard/tasks'} className="text-blue-600 hover:underline text-sm">
+        ← {isDone ? 'Completed Tasks' : 'Task Manager'}
+      </Link>
 
       <div className="bg-white border rounded-xl p-5 shadow-sm space-y-3">
         <div className="flex items-start justify-between gap-2">
           <h1 className="text-xl font-bold leading-tight">{task.title}</h1>
           <PriorityBadge priority={task.priority as Priority} />
         </div>
+
+        {isDone && (
+          <span className="inline-block text-xs bg-green-100 text-green-700 font-medium px-2 py-0.5 rounded-full">Completed</span>
+        )}
 
         {project && (
           <div className="flex items-center gap-2">
@@ -75,17 +87,26 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ tas
       </div>
 
       <div className="space-y-3">
-        <form action={handleDone}>
-          <button type="submit" className="w-full bg-green-600 text-white rounded-xl py-3 font-semibold hover:bg-green-700">
-            Mark as Done
-          </button>
-        </form>
-
-        <form action={handlePushToTomorrow}>
-          <button type="submit" className="w-full bg-[#1e3a5f] text-white rounded-xl py-3 font-semibold hover:bg-[#162d4a]">
-            Push to Tomorrow
-          </button>
-        </form>
+        {isDone ? (
+          <form action={handleReopen}>
+            <button type="submit" className="w-full bg-[#1e3a5f] text-white rounded-xl py-3 font-semibold hover:bg-[#162d4a]">
+              Reopen Task
+            </button>
+          </form>
+        ) : (
+          <>
+            <form action={handleComplete}>
+              <button type="submit" className="w-full bg-green-600 text-white rounded-xl py-3 font-semibold hover:bg-green-700">
+                Mark as Done
+              </button>
+            </form>
+            <form action={handlePushToTomorrow}>
+              <button type="submit" className="w-full bg-[#1e3a5f] text-white rounded-xl py-3 font-semibold hover:bg-[#162d4a]">
+                Push to Tomorrow
+              </button>
+            </form>
+          </>
+        )}
 
         <form action={handleDelete}>
           <button type="submit" className="w-full border border-red-300 text-red-600 rounded-xl py-3 font-semibold hover:bg-red-50">

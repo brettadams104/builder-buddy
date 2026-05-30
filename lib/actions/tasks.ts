@@ -49,6 +49,26 @@ export async function updateTaskStatus(taskId: string, status: string, projectId
   if (projectId) revalidatePath(`/projects/${projectId}/tasks`)
 }
 
+export async function completeTask(taskId: string, projectId: string | null) {
+  const supabase = await createClient()
+  const { error } = await supabase.from('tasks').update({ status: 'done' }).eq('id', taskId)
+  if (error) throw new Error(error.message)
+  revalidatePath('/dashboard/tasks')
+  revalidatePath('/dashboard')
+  if (projectId) revalidatePath(`/projects/${projectId}/tasks`)
+  redirect('/dashboard/tasks?tab=completed')
+}
+
+export async function reopenTask(taskId: string, projectId: string | null) {
+  const supabase = await createClient()
+  const { error } = await supabase.from('tasks').update({ status: 'not_done' }).eq('id', taskId)
+  if (error) throw new Error(error.message)
+  revalidatePath('/dashboard/tasks')
+  revalidatePath('/dashboard')
+  if (projectId) revalidatePath(`/projects/${projectId}/tasks`)
+  redirect('/dashboard/tasks')
+}
+
 export async function deleteTask(taskId: string, projectId: string | null) {
   const supabase = await createClient()
   const { error } = await supabase.from('tasks').delete().eq('id', taskId)
