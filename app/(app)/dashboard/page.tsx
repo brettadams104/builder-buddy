@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { ProjectCard } from '@/components/project-card'
+import { ProjectsDropdown } from './projects-dropdown'
 import { CalendarGrid } from '@/components/calendar-grid'
 import { TaskItem } from '@/components/task-item'
 import type { CalendarEvent, Project, Task } from '@/lib/types'
@@ -42,18 +42,12 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      <div>
-        <h2 className="font-semibold mb-3">Active Projects</h2>
-        {!projects?.length ? (
-          <p className="text-gray-500 text-sm">No active projects. Create one to get started.</p>
-        ) : (
-          <div className="flex gap-3 overflow-x-auto pb-2">
-            {projects.map(p => (
-              <ProjectCard key={p.id} project={p as Project} urgentCount={urgentCountByProject[p.id] ?? 0} />
-            ))}
-          </div>
-        )}
-      </div>
+      <ProjectsDropdown
+        projects={(projects ?? []).map(p => ({
+          ...(p as Project),
+          urgentCount: urgentCountByProject[p.id] ?? 0,
+        }))}
+      />
 
       <div>
         <h2 className="font-semibold mb-3">Calendar</h2>
