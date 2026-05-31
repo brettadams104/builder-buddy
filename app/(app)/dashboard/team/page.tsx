@@ -15,12 +15,20 @@ export default async function TeamPage() {
     const email = formData.get('email') as string
     const name = formData.get('name') as string
     const adminClient = createAdminClient()
-    const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
-      data: { name },
-    })
+    const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, { data: { name } })
     if (error) throw new Error(error.message)
     const supabase = await createClient()
     await supabase.from('profiles').update({ name }).eq('id', data.user.id)
+    revalidatePath('/dashboard/team')
+  }
+
+  async function updateName(formData: FormData) {
+    'use server'
+    const id = formData.get('id') as string
+    const name = formData.get('name') as string
+    if (!name?.trim()) return
+    const supabase = await createClient()
+    await supabase.from('profiles').update({ name: name.trim() }).eq('id', id)
     revalidatePath('/dashboard/team')
   }
 
@@ -32,11 +40,24 @@ export default async function TeamPage() {
         <div className="px-4 py-3 border-b font-semibold text-sm">Members</div>
         <ul>
           {profiles?.map(p => (
-            <li key={p.id} className="flex items-center justify-between px-4 py-3 border-b last:border-0">
+            <li key={p.id} className="px-4 py-3 border-b last:border-0 space-y-2">
               <div>
                 <p className="text-sm font-medium">{p.name}</p>
                 <p className="text-xs text-gray-500">{emailMap[p.id]}</p>
               </div>
+              <form action={updateName} className="flex gap-2">
+                <input type="hidden" name="id" value={p.id} />
+                <input
+                  name="name"
+                  type="text"
+                  defaultValue={p.name}
+                  placeholder="Update name..."
+                  className="flex-1 border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button type="submit" className="bg-[#1e3a5f] text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-[#162d4a]">
+                  Save
+                </button>
+              </form>
             </li>
           ))}
         </ul>
