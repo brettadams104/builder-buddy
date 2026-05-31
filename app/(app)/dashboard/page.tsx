@@ -51,7 +51,7 @@ export default async function DashboardPage() {
 
       <div>
         <h2 className="font-semibold mb-3">Calendar</h2>
-        <CalendarGrid events={enrichedEvents} />
+        <CalendarGrid events={enrichedEvents} projects={(projects ?? []).map(p => ({ id: p.id, name: p.name, color: p.color }))} />
       </div>
 
       <div>

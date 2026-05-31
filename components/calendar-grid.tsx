@@ -1,15 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
+import { createEvent } from '@/lib/actions/events'
 import type { CalendarEvent, Project } from '@/lib/types'
 
 interface Props {
   events: (CalendarEvent & { project: Pick<Project, 'color' | 'name'> })[]
+  projects: Pick<Project, 'id' | 'name' | 'color'>[]
 }
 
-export function CalendarGrid({ events }: Props) {
+export function CalendarGrid({ events, projects }: Props) {
   const [current, setCurrent] = useState(() => new Date())
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [adding, setAdding] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   const year = current.getFullYear()
   const month = current.getMonth()
@@ -39,7 +45,27 @@ export function CalendarGrid({ events }: Props) {
 
   function handleDayClick(day: number) {
     const key = dateKey(day)
-    setSelectedDate(prev => prev === key ? null : key)
+    setSelectedDate(prev => {
+      if (prev === key) { setAdding(false); return null }
+      setAdding(false)
+      return key
+    })
+  }
+
+  async function handleAddEvent(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    if (!selectedDate) return
+    const form = new FormData(e.currentTarget)
+    const projectId = form.get('project_id') as string
+    const title = form.get('title') as string
+    const time = (form.get('event_time') as string) || null
+    if (!title?.trim() || !projectId) return
+    startTransition(async () => {
+      await createEvent({ projectId, title: title.trim(), eventDate: selectedDate, eventTime: time })
+      router.refresh()
+      setAdding(false)
+      ;(e.target as HTMLFormElement).reset()
+    })
   }
 
   const selectedEvents = selectedDate ? (eventsByDate[selectedDate] ?? []) : []
@@ -50,9 +76,9 @@ export function CalendarGrid({ events }: Props) {
   return (
     <div className="border rounded-xl bg-white shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b">
-        <button onClick={() => { setCurrent(new Date(year, month - 1, 1)); setSelectedDate(null) }} className="text-gray-500 hover:text-gray-900 px-2 text-lg">‹</button>
+        <button onClick={() => { setCurrent(new Date(year, month - 1, 1)); setSelectedDate(null); setAdding(false) }} className="text-gray-500 hover:text-gray-900 px-2 text-lg">‹</button>
         <p className="font-semibold text-sm">{monthLabel}</p>
-        <button onClick={() => { setCurrent(new Date(year, month + 1, 1)); setSelectedDate(null) }} className="text-gray-500 hover:text-gray-900 px-2 text-lg">›</button>
+        <button onClick={() => { setCurrent(new Date(year, month + 1, 1)); setSelectedDate(null); setAdding(false) }} className="text-gray-500 hover:text-gray-900 px-2 text-lg">›</button>
       </div>
 
       <div className="grid grid-cols-7 text-center">
@@ -90,10 +116,7 @@ export function CalendarGrid({ events }: Props) {
                     {dayEvents.length > 2 && (
                       <p className={`text-xs ${isSelected ? 'text-white/70' : 'text-gray-400'}`}>+{dayEvents.length - 2} more</p>
                     )}
-                    {hasEvents && dayEvents.length === 0 && null}
                   </div>
-                  {hasEvents && dayEvents.length === 0 && null}
-                  {!hasEvents && <span className="block w-1 h-1" />}
                 </>
               )}
             </div>
@@ -106,9 +129,46 @@ export function CalendarGrid({ events }: Props) {
         <div className="border-t">
           <div className="px-4 py-3 bg-gray-50 border-b flex items-center justify-between">
             <p className="font-semibold text-sm">{selectedLabel}</p>
-            <button onClick={() => setSelectedDate(null)} className="text-gray-400 hover:text-gray-700 text-lg leading-none">✕</button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setAdding(o => !o)}
+                className="text-xs bg-[#1e3a5f] text-white px-3 py-1 rounded-full hover:bg-[#162d4a]"
+              >
+                {adding ? 'Cancel' : '+ Add Event'}
+              </button>
+              <button onClick={() => { setSelectedDate(null); setAdding(false) }} className="text-gray-400 hover:text-gray-700 text-lg leading-none">✕</button>
+            </div>
           </div>
-          {selectedEvents.length === 0 ? (
+
+          {adding && (
+            <form onSubmit={handleAddEvent} className="px-4 py-3 border-b bg-white space-y-2">
+              <input
+                name="title"
+                type="text"
+                placeholder="Event title"
+                required
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <select name="project_id" required className="border rounded-lg px-3 py-2 text-sm">
+                  <option value="">Select project...</option>
+                  {projects.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+                <input name="event_time" type="time" className="border rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <button
+                type="submit"
+                disabled={isPending}
+                className="w-full bg-[#1e3a5f] text-white rounded-lg py-2 text-sm font-medium hover:bg-[#162d4a] disabled:opacity-50"
+              >
+                {isPending ? 'Saving...' : 'Save Event'}
+              </button>
+            </form>
+          )}
+
+          {selectedEvents.length === 0 && !adding ? (
             <p className="text-gray-500 text-sm text-center py-5">Nothing scheduled.</p>
           ) : (
             <ul className="divide-y">
