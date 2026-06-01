@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { sendUrgentTaskSMS } from '@/lib/notifications/sms'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { sendTaskAssignedEmail } from '@/lib/notifications/email'
 import type { Priority } from '@/lib/types'
 
 export async function createTask(input: {
@@ -15,6 +16,8 @@ export async function createTask(input: {
   notes: string | null
 }) {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   const { error } = await supabase.from('tasks').insert({
     project_id: input.projectId || null,
     title: input.title,
@@ -25,13 +28,26 @@ export async function createTask(input: {
   })
   if (error) throw new Error(error.message)
 
-  if (input.priority === 'urgent' && input.projectId) {
-    const [{ data: profile }, { data: project }] = await Promise.all([
-      supabase.from('profiles').select('phone').eq('id', input.assigneeId).single(),
-      supabase.from('projects').select('name').eq('id', input.projectId).single(),
+  // Send email to assignee (skip if assigning to yourself)
+  if (input.assigneeId !== user?.id) {
+    const adminClient = createAdminClient()
+    const [{ data: { user: assignee } }, { data: profile }, { data: project }, { data: assigner }] = await Promise.all([
+      adminClient.auth.admin.getUserById(input.assigneeId),
+      supabase.from('profiles').select('name').eq('id', input.assigneeId).single(),
+      input.projectId ? supabase.from('projects').select('name').eq('id', input.projectId).single() : Promise.resolve({ data: null }),
+      supabase.from('profiles').select('name').eq('id', user!.id).single(),
     ])
-    if (profile?.phone && project?.name) {
-      await sendUrgentTaskSMS(profile.phone, project.name, input.title).catch(() => {})
+    if (assignee?.email) {
+      await sendTaskAssignedEmail({
+        toEmail: assignee.email,
+        toName: profile?.name ?? 'Team Member',
+        taskTitle: input.title,
+        priority: input.priority,
+        projectName: project?.name ?? null,
+        dueDate: input.dueDate,
+        notes: input.notes,
+        assignedBy: assigner?.name ?? 'A team member',
+      }).catch(() => {})
     }
   }
 
