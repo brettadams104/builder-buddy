@@ -37,7 +37,7 @@ export async function createRoom(homeId: string, roomType: string) {
   revalidatePath(`/lookbook/${homeId}`)
 }
 
-export async function updateHome(homeId: string, input: { name: string; address: string; year: number | null }) {
+export async function updateHome(homeId: string, input: { name: string; address: string; year: number | null; description: string | null }) {
   const supabase = await createClient()
   const { error } = await supabase.from('lookbook_homes').update(input).eq('id', homeId)
   if (error) throw new Error(error.message)

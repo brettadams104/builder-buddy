@@ -26,6 +26,7 @@ export default async function HomeDetailPage({ params }: { params: Promise<{ id:
         address={home.address}
         year={home.year}
         heroPhotoUrl={home.hero_photo_url}
+        description={home.description ?? null}
       />
 
       <div className="flex items-center justify-between">
