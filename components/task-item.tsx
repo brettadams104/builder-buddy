@@ -10,7 +10,7 @@ interface Props {
 export function TaskItem({ task, projectName }: Props) {
   return (
     <Link
-      href={`/projects/${task.project_id}/tasks`}
+      href={`/dashboard/tasks/${task.id}`}
       className="flex items-start justify-between p-3 bg-white border rounded-xl hover:border-blue-400 transition-colors"
     >
       <div className="space-y-1">
