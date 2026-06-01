@@ -37,6 +37,14 @@ export async function createRoom(homeId: string, roomType: string) {
   revalidatePath(`/lookbook/${homeId}`)
 }
 
+export async function updateHome(homeId: string, input: { name: string; address: string; year: number | null }) {
+  const supabase = await createClient()
+  const { error } = await supabase.from('lookbook_homes').update(input).eq('id', homeId)
+  if (error) throw new Error(error.message)
+  revalidatePath(`/lookbook/${homeId}`)
+  revalidatePath('/lookbook')
+}
+
 export async function uploadLookbookPhoto(roomId: string, homeId: string, file: File) {
   const supabase = await createClient()
   const ext = file.name.split('.').pop()
