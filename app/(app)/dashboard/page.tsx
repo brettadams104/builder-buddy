@@ -11,11 +11,12 @@ export default async function DashboardPage() {
 
   const today = new Date().toISOString().split('T')[0]
 
-  const [{ data: projects }, { data: tasks }, { data: upcomingTasks }, { data: events }] = await Promise.all([
+  const [{ data: projects }, { data: tasks }, { data: upcomingTasks }, { data: events }, { data: members }] = await Promise.all([
     supabase.from('projects').select('*').eq('status', 'active').order('created_at'),
     supabase.from('tasks').select('*, projects(name)').eq('assignee_id', user!.id).eq('status', 'not_done').eq('due_date', today).order('created_at'),
     supabase.from('tasks').select('*, projects(name)').eq('assignee_id', user!.id).eq('status', 'not_done').gt('due_date', today).order('due_date', { ascending: true }).limit(5),
     supabase.from('events').select('*, projects(color, name)').order('event_date'),
+    supabase.from('profiles').select('id, name'),
   ])
 
   const urgentCountByProject = (tasks ?? []).reduce<Record<string, number>>((acc, t) => {
@@ -51,7 +52,11 @@ export default async function DashboardPage() {
 
       <div>
         <h2 className="font-semibold mb-3">Calendar</h2>
-        <CalendarGrid events={enrichedEvents} projects={(projects ?? []).map(p => ({ id: p.id, name: p.name, color: p.color }))} />
+        <CalendarGrid
+          events={enrichedEvents}
+          projects={(projects ?? []).map(p => ({ id: p.id, name: p.name, color: p.color }))}
+          members={(members ?? []).map(m => ({ id: m.id, name: m.name }))}
+        />
       </div>
 
       <div>
