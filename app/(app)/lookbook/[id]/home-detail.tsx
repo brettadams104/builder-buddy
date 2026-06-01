@@ -16,11 +16,13 @@ interface Props {
 export function HomeDetail({ id, name, address, year, heroPhotoUrl, description }: Props) {
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   async function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setSaving(true)
+    setError(null)
     const form = new FormData(e.currentTarget)
     const yearStr = form.get('year') as string
     try {
@@ -32,6 +34,8 @@ export function HomeDetail({ id, name, address, year, heroPhotoUrl, description 
       })
       setEditing(false)
       router.refresh()
+    } catch (err) {
+      setError((err as Error).message)
     } finally {
       setSaving(false)
     }
@@ -61,11 +65,12 @@ export function HomeDetail({ id, name, address, year, heroPhotoUrl, description 
             <label className="block text-xs font-medium text-gray-500 mb-1">Description (optional)</label>
             <textarea name="description" rows={3} defaultValue={description ?? ''} placeholder="Brief overview of this home for clients..." className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
           </div>
+          {error && <p className="text-red-600 text-sm">{error}</p>}
           <div className="flex gap-2">
             <button type="submit" disabled={saving} className="flex-1 bg-[#1e3a5f] text-white rounded-lg py-2 text-sm font-medium hover:bg-[#162d4a] disabled:opacity-50">
               {saving ? 'Saving…' : 'Save'}
             </button>
-            <button type="button" onClick={() => setEditing(false)} className="flex-1 border rounded-lg py-2 text-sm hover:bg-gray-50">
+            <button type="button" onClick={() => { setEditing(false); setError(null) }} className="flex-1 border rounded-lg py-2 text-sm hover:bg-gray-50">
               Cancel
             </button>
           </div>
