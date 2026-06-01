@@ -42,6 +42,7 @@ export default async function NotesPage({ params }: { params: Promise<{ id: stri
             key={note.id}
             note={note as Note}
             author={{ name: (note.profiles as { name: string } | null)?.name ?? 'Unknown' }}
+            projectId={id}
           />
         ))}
       </div>
