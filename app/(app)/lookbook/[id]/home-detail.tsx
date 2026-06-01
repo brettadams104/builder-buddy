@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { updateHome } from '@/lib/actions/lookbook'
 
 interface Props {
@@ -15,6 +16,7 @@ interface Props {
 export function HomeDetail({ id, name, address, year, heroPhotoUrl, description }: Props) {
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const router = useRouter()
 
   async function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -29,6 +31,7 @@ export function HomeDetail({ id, name, address, year, heroPhotoUrl, description 
         description: (form.get('description') as string) || null,
       })
       setEditing(false)
+      router.refresh()
     } finally {
       setSaving(false)
     }
@@ -76,10 +79,9 @@ export function HomeDetail({ id, name, address, year, heroPhotoUrl, description 
             </div>
             <button
               onClick={() => setEditing(true)}
-              className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-              title="Edit home details"
+              className="text-sm text-blue-600 hover:underline shrink-0"
             >
-              ⚙️
+              Edit
             </button>
           </div>
           {description && (
