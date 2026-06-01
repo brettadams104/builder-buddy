@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 
-const TABS = ['notes', 'tasks', 'calendar', 'files', 'contacts'] as const
+const TABS = ['info', 'notes', 'tasks', 'calendar', 'files', 'contacts'] as const
 
 export default async function ProjectLayout({
   children,

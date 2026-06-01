@@ -14,6 +14,17 @@ export async function createProject(input: {
   revalidatePath('/dashboard')
 }
 
+export async function updateProjectInfo(id: string, input: {
+  owner_name: string | null
+  garage_pin: string | null
+  info_notes: string | null
+}) {
+  const supabase = await createClient()
+  const { error } = await supabase.from('projects').update(input).eq('id', id)
+  if (error) throw new Error(error.message)
+  revalidatePath(`/projects/${id}/info`)
+}
+
 export async function archiveProject(id: string) {
   const supabase = await createClient()
   const { error } = await supabase.from('projects').update({ status: 'archived' }).eq('id', id)

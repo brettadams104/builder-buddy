@@ -20,6 +20,9 @@ export interface Project {
   address: string
   color: string
   status: ProjectStatus
+  owner_name: string | null
+  garage_pin: string | null
+  info_notes: string | null
   created_at: string
 }
 
