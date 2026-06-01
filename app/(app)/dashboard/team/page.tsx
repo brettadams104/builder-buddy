@@ -10,12 +10,19 @@ export default async function TeamPage() {
   const { data: { users } } = await adminClient.auth.admin.listUsers()
   const emailMap = Object.fromEntries(users.map(u => [u.id, u.email ?? '']))
 
-  async function inviteMember(formData: FormData) {
+  async function createMember(formData: FormData) {
     'use server'
     const email = formData.get('email') as string
     const name = formData.get('name') as string
+    const password = formData.get('password') as string
+    if (!email || !name || !password) return
     const adminClient = createAdminClient()
-    const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, { data: { name } })
+    const { data, error } = await adminClient.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { name },
+    })
     if (error) throw new Error(error.message)
     const supabase = await createClient()
     await supabase.from('profiles').update({ name }).eq('id', data.user.id)
@@ -64,12 +71,14 @@ export default async function TeamPage() {
       </div>
 
       <div className="border rounded-xl bg-white shadow-sm p-4 space-y-3">
-        <h2 className="font-semibold text-sm">Invite Team Member</h2>
-        <form action={inviteMember} className="space-y-3">
+        <h2 className="font-semibold text-sm">Add Team Member</h2>
+        <p className="text-xs text-gray-500">Creates the account immediately — no email sent. Share the credentials with them directly.</p>
+        <form action={createMember} className="space-y-3">
           <input name="name" type="text" placeholder="Full name" required className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           <input name="email" type="email" placeholder="Email address" required className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input name="password" type="text" placeholder="Temporary password" required className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           <button type="submit" className="w-full bg-[#1e3a5f] text-white rounded-lg py-2 text-sm font-medium hover:bg-[#162d4a]">
-            Send Invite
+            Create Account
           </button>
         </form>
       </div>
